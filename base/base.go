@@ -6,7 +6,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 	"skandigatebot/config"
-	u "skandigatebot/models/user"
 	"strconv"
 )
 
@@ -32,10 +31,8 @@ func init() {
 	db = conn
 	//_ = db.Debug().Exec("set search_path = \"public\"")
 	//_ = db.Debug().Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" SCHEMA public")
-	_ = db.Debug().AutoMigrate(&u.User{})
 }
 
-// Возвращает объект бд
 func GetDB() *gorm.DB {
 	return db
 }

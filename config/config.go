@@ -7,7 +7,6 @@ import (
 	"strconv"
 )
 
-// Конфиг базы
 type DbConfig struct {
 	Name     string
 	User     string
@@ -17,17 +16,14 @@ type DbConfig struct {
 	Port     int
 }
 
-// Конфиг сервера
 type ServerConfig struct {
 	Port int
 }
 
-// Общий конфиг переменных окружения
 type Config struct {
 	Db DbConfig
 }
 
-// Возвращает конфиг переменных окружения
 func New() *Config {
 	load()
 

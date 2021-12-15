@@ -1,16 +1,15 @@
 package main
 
 import (
-	"errors"
-	"github.com/joho/godotenv"
-	"gorm.io/gorm"
 	"log"
 	"os"
 	"skandigatebot/base"
+	"skandigatebot/console"
 	"strconv"
 	"time"
 
 	tb "gopkg.in/tucnak/telebot.v2"
+	a "skandigatebot/models/account"
 	u "skandigatebot/models/user"
 )
 
@@ -24,8 +23,7 @@ const (
 )
 
 func main() {
-	loadEnv()
-	initSettings()
+	console.Boot()
 
 	b, err := tb.NewBot(tb.Settings{
 		Token:  os.Getenv("TELEGRAM_APITOKEN"),
@@ -39,24 +37,18 @@ func main() {
 	}
 
 	b.Handle("/start", func(m *tb.Message) {
-		if !m.Private() {
-			return
-		}
-
 		_, err := b.Send(m.Sender, textHello)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		user := getUser(m)
-
-		checkAuth(user, m, b)
+		showFirstMenu(m, b)
 	})
 
 	b.Handle(tb.OnContact, func(m *tb.Message) {
-		user := getUser(m)
+		account := a.GetAccount(m)
 
-		if user.UserId != int(m.Contact.UserID) {
+		if account.AccountId != uint(m.Contact.UserID) {
 			_, err := b.Send(m.Sender, textEnemyPhoneNumber)
 			if err != nil {
 				log.Fatal(err)
@@ -70,72 +62,29 @@ func main() {
 			log.Fatal(err)
 		}
 
-		if user.Phone != phone {
-			user.Phone = phone
+		if account.Phone != uint(phone) {
+			account.Phone = uint(phone)
 
-			base.GetDB().Save(&user)
+			base.GetDB().Save(&account)
 		}
 
-		checkAuth(user, m, b)
+		showFirstMenu(m, b)
+	})
+
+	b.Handle(textOpenGate, func(m *tb.Message) {
+		account := a.GetAccount(m)
+
+		if account.Phone > 0 {
+			showGateMenu("Врата открываются!", m, b)
+		} else {
+			showAuthMenu("Вам нельзя это сделать, вы не авторизованы.", m, b)
+		}
 	})
 
 	b.Start()
 }
 
-func loadEnv() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("No .env file found")
-	}
-}
-
-func initSettings() {
-
-}
-
-func getUser(m *tb.Message) u.User {
-	userId := m.Sender.ID
-
-	var user u.User
-
-	result := base.
-		GetDB().
-		Model(&u.User{}).
-		Where("user_id = ?", userId).
-		Take(&user)
-
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		user = u.User{
-			UserId:    int(userId),
-			FirstName: m.Sender.FirstName,
-			LastName:  m.Sender.LastName,
-			UserName:  m.Sender.Username,
-		}
-
-		base.GetDB().Save(&user)
-	} else {
-		hasChanges := false
-		if user.FirstName != m.Sender.FirstName {
-			user.FirstName = m.Sender.FirstName
-			hasChanges = true
-		}
-		if user.LastName != m.Sender.LastName {
-			user.LastName = m.Sender.LastName
-			hasChanges = true
-		}
-		if user.UserName != m.Sender.Username {
-			user.UserName = m.Sender.Username
-			hasChanges = true
-		}
-
-		if hasChanges {
-			base.GetDB().Save(&user)
-		}
-	}
-
-	return user
-}
-
-func showAuthMenu(m *tb.Message, b *tb.Bot) {
+func showAuthMenu(message string, m *tb.Message, b *tb.Bot) {
 	menu := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
 	btnSharePhoneNumber := menu.Contact(textSharePhoneNumber)
 
@@ -143,13 +92,13 @@ func showAuthMenu(m *tb.Message, b *tb.Bot) {
 		menu.Row(btnSharePhoneNumber),
 	)
 
-	_, err := b.Send(m.Sender, textNeedAuth, menu)
+	_, err := b.Send(m.Sender, message, menu)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func showGateMenu(m *tb.Message, b *tb.Bot) {
+func showGateMenu(message string, m *tb.Message, b *tb.Bot) {
 	menu := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
 	btnOpenGate := menu.Text(textOpenGate)
 
@@ -157,16 +106,28 @@ func showGateMenu(m *tb.Message, b *tb.Bot) {
 		menu.Row(btnOpenGate),
 	)
 
-	_, err := b.Send(m.Sender, textAlreadyAuth, menu)
+	_, err := b.Send(m.Sender, message, menu)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func checkAuth(user u.User, m *tb.Message, b *tb.Bot) {
-	if user.Phone > 0 {
-		showGateMenu(m, b)
+func showFirstMenu(m *tb.Message, b *tb.Bot) {
+	account := a.GetAccount(m)
+
+	if account.Phone > 0 {
+		_, err := u.GetUser(account.Phone)
+
+		if err != nil {
+			if err == u.ErrNotFound {
+				showAuthMenu("Вы успешно авторизовались, однако вашего телефона нет в списке разрешённых. Напишите скандифокс для добавления.", m, b)
+			} else {
+				showAuthMenu("Конина какая-то на сервере", m, b)
+			}
+		} else {
+			showGateMenu(textAlreadyAuth, m, b)
+		}
 	} else {
-		showAuthMenu(m, b)
+		showAuthMenu(textNeedAuth, m, b)
 	}
 }
