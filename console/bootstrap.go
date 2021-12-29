@@ -25,6 +25,8 @@ func loadEnv() {
 
 func initSettings() {
 	_ = base.GetDB().Debug().AutoMigrate(&a.Account{}, &user.User{}, &role.Role{})
+	role.SeedRoles()
+	user.SeedUsers()
 }
 
 func handleArgs() {
