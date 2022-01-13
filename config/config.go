@@ -16,10 +16,6 @@ type DbConfig struct {
 	Port     int
 }
 
-type ServerConfig struct {
-	Port int
-}
-
 type Config struct {
 	Db DbConfig
 }

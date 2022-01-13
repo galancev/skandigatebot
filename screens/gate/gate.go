@@ -3,19 +3,22 @@ package gate
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
+	"net/http"
 	"skandigatebot/bot"
+	pc "skandigatebot/components/pacs/config"
 	a "skandigatebot/models/account"
 	u "skandigatebot/models/user"
 	"skandigatebot/models/user/role"
 	"skandigatebot/screens/admin"
-	"time"
 )
 
 const (
-	textSelectAction = "Выберите дальнейшее действие"
-	OpenGateButton   = "Открыть врата!"
-	textGateOpening  = "Врата открываются..."
-	textNonAuth      = "Вам нельзя это сделать, вы не авторизованы."
+	textSelectAction  = "Выберите дальнейшее действие"
+	OpenGateButton    = "Открыть врата!"
+	textGateOpening   = "Врата открываются..."
+	textNonAuth       = "Вам нельзя это сделать, вы не авторизованы."
+	textGateOpened    = "Врата открыты!"
+	textGateOpenError = "При открытии произошла ошибка, может быть врата отключены или отглючены"
 )
 
 type pauth interface {
@@ -86,7 +89,24 @@ func (pg *PGate) HideGateMenuWithMessage(message string, account *a.Account, use
 }
 
 func OpenGate(m *tb.Message, b *tb.Bot) {
-	time.Sleep(5 * time.Second)
+	//time.Sleep(5 * time.Second)
 
-	bot.SendMessage("Врата открыты!", m, b)
+	conf := pc.New()
+
+	client := &http.Client{}
+	URL := conf.Host + "/data.cgx?cmd={\"Command\":\"ApplyProfile\",\"Number\":1}"
+
+	req, err := http.NewRequest("GET", URL, nil)
+	req.SetBasicAuth(conf.User, conf.Password)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		bot.SendMessage(textGateOpened, m, b)
+	} else {
+		bot.SendMessage(textGateOpenError, m, b)
+	}
+
 }

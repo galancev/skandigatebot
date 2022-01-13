@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gorm.io/gorm"
 	"skandigatebot/base"
+	"skandigatebot/models"
 	"skandigatebot/models/orm"
 	"skandigatebot/models/user/role"
 	"time"
@@ -67,4 +68,34 @@ func SeedUsers() {
 		LastName:  "Галанцев",
 		RoleId:    role.Admin,
 	})
+}
+
+func GetUsersCount() (int64, error) {
+	var userCount int64
+
+	base.
+		GetDB().
+		Model(&User{}).
+		Count(&userCount)
+
+	return userCount, nil
+}
+
+func GetUsers(offset int, limit int) ([]models.UserAccount, error) {
+	var users []models.UserAccount
+
+	result := base.
+		GetDB().
+		Model(&User{}).
+		Select("tg_user.first_name as UserFirstName, tg_user.last_name as UserLastName, tg_user.phone as phone, tg_user.role_id as RoleId, tg_account.first_name as AccountFirstName, tg_account.last_name as AccountLastName, tg_account.user_name as AccountUserName").
+		Joins("left join tg_account on tg_account.phone = tg_user.phone").
+		Offset(offset).
+		Limit(limit).
+		Find(&users)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return users, ErrNotFound
+	}
+
+	return users, nil
 }

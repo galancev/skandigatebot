@@ -8,7 +8,7 @@ import (
 )
 
 func SendMessage(message string, m *tb.Message, b *tb.Bot) {
-	_, err := b.Send(m.Sender, message)
+	_, err := b.Send(m.Sender, message, tb.ModeHTML)
 	if err != nil {
 		log.Fatal(err)
 	}

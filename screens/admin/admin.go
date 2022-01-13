@@ -10,8 +10,14 @@ import (
 )
 
 const (
-	textSelectAction = "Выберите дальнейшее действие"
-	OnAdminButton    = "Админка"
+	textSelectAction     = "Выберите дальнейшее действие"
+	OnAdminButton        = "Админка"
+	textDbError          = "Конина какая-то на сервере"
+	textAuthAccessDenied = "Вы успешно авторизовались, однако вашего телефона нет в списке разрешённых. Напишите скандифокс для добавления."
+	textAuthAdminDenied  = "Хорошая попытка, но нет. В админку вам нельзя!"
+	textNonAuth          = "Вам нельзя это сделать, вы не авторизованы."
+	OnAdminExitButton    = "Выйти из админки"
+	OnAdminShowUsers     = "Показать пользователей"
 )
 
 type pauth interface {
@@ -40,29 +46,29 @@ func (pa *PAdmin) OnAdmin(m *tb.Message, b *tb.Bot) {
 	if account.Phone > 0 {
 		if err != nil {
 			if err == u.ErrNotFound {
-				bot.SendMessage("Вы успешно авторизовались, однако вашего телефона нет в списке разрешённых. Напишите скандифокс для добавления.", m, b)
+				bot.SendMessage(textAuthAccessDenied, m, b)
 			} else {
-				bot.SendMessage("Конина какая-то на сервере", m, b)
+				bot.SendMessage(textDbError, m, b)
 			}
 			pa.PAuth.ShowAuthMenu(&account, &user, m, b)
 		} else {
 			if user.RoleId == role.Admin {
 				pa.ShowAdminMenu(m, b)
 			} else {
-				bot.SendMessage("В админку вам нельзя!", m, b)
+				bot.SendMessage(textAuthAdminDenied, m, b)
 				pa.PGate.ShowGateMenu(&account, &user, m, b)
 			}
 		}
 	} else {
-		bot.SendMessage("Вам нельзя это сделать, вы не авторизованы.", m, b)
+		bot.SendMessage(textNonAuth, m, b)
 		pa.PAuth.ShowAuthMenu(&account, &user, m, b)
 	}
 }
 
 func (pa *PAdmin) ShowAdminMenu(m *tb.Message, b *tb.Bot) {
 	menu := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
-	btnAdminBack := menu.Text("Выйти из админки")
-	btnAdminShowUsers := menu.Text("Показать пользователей")
+	btnAdminBack := menu.Text(OnAdminExitButton)
+	btnAdminShowUsers := menu.Text(OnAdminShowUsers)
 
 	menu.Reply(
 		menu.Row(btnAdminBack, btnAdminShowUsers),

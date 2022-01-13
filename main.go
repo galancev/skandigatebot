@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"skandigatebot/bot"
 	"skandigatebot/console"
 	"skandigatebot/screens/admin"
 	"skandigatebot/screens/auth"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	tb "gopkg.in/tucnak/telebot.v2"
+	au "skandigatebot/screens/admin/users"
 )
 
 func main() {
@@ -54,6 +56,30 @@ func main() {
 		padmin := admin.New(pauth, pgate)
 
 		padmin.OnAdmin(m, b)
+	})
+
+	b.Handle(admin.OnAdminExitButton, func(m *tb.Message) {
+		account, user, _ := bot.GetAccountAndUser(m)
+
+		pauth := auth.New()
+		pgate := gate.New(pauth)
+		pfirst := first.New(pauth, pgate)
+
+		pfirst.ShowFirstMenu(&account, &user, m, b)
+	})
+
+	b.Handle(admin.OnAdminShowUsers, func(m *tb.Message) {
+		pauth := auth.New()
+		pgate := gate.New(pauth)
+		pau := au.New(pauth, pgate)
+
+		pau.OnAdminUsers(m, b)
+	})
+
+	b.Handle(tb.OnText, func(m *tb.Message) {
+		log.Print(m.Text)
+		// all the text messages that weren't
+		// captured by existing handlers
 	})
 
 	b.Start()
