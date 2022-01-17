@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	textSelectAction  = "Выберите дальнейшее действие"
-	OpenGateButton    = "Открыть врата!"
-	textGateOpening   = "Врата открываются..."
-	textNonAuth       = "Вам нельзя это сделать, вы не авторизованы."
-	textGateOpened    = "Врата открыты!"
-	textGateOpenError = "При открытии произошла ошибка, может быть врата отключены или отглючены"
+	textSelectAction  = "🤔 Выберите дальнейшее действие"
+	OpenGateButton    = "🅿️ Открыть врата!"
+	textGateOpening   = "🕐 Врата открываются..."
+	textNonAuth       = "⛔️ Вам нельзя это сделать, вы не авторизованы."
+	textGateOpened    = "🚙 Врата открыты!"
+	textGateOpenError = "❌ При открытии произошла ошибка, может быть врата отключены или отглючены"
 )
 
 type pauth interface {
@@ -104,9 +104,9 @@ func OpenGate(m *tb.Message, b *tb.Bot) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		bot.SendMessage(textGateOpened, m, b)
-	} else {
 		bot.SendMessage(textGateOpenError, m, b)
+	} else {
+		bot.SendMessage(textGateOpened, m, b)
 	}
 
 }
