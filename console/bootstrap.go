@@ -19,7 +19,7 @@ func Boot() {
 
 func loadEnv() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("No .env file found")
+		log.Print("No .env file found")
 	}
 }
 

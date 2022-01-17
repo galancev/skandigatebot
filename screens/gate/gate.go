@@ -2,7 +2,6 @@ package gate
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
-	"log"
 	"net/http"
 	"skandigatebot/bot"
 	pc "skandigatebot/components/pacs/config"
@@ -71,7 +70,7 @@ func (pg *PGate) ShowGateMenuWithMessage(message string, account *a.Account, use
 
 	_, err := b.Send(m.Sender, message, menu)
 	if err != nil {
-		log.Fatal(err)
+		bot.SendMessageLog(err.Error(), b)
 	}
 }
 
@@ -84,13 +83,11 @@ func (pg *PGate) HideGateMenuWithMessage(message string, account *a.Account, use
 
 	_, err := b.Send(m.Sender, message, menu)
 	if err != nil {
-		log.Fatal(err)
+		bot.SendMessageLog(err.Error(), b)
 	}
 }
 
 func OpenGate(m *tb.Message, b *tb.Bot) {
-	//time.Sleep(5 * time.Second)
-
 	conf := pc.New()
 
 	client := &http.Client{}
@@ -100,13 +97,32 @@ func OpenGate(m *tb.Message, b *tb.Bot) {
 	req.SetBasicAuth(conf.User, conf.Password)
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		bot.SendMessageLog(err.Error(), b)
+	}
+
+	logMessage := m.Sender.FirstName
+	logMessage += " "
+	logMessage += m.Sender.LastName
+	if m.Sender.Username != "" {
+		logMessage += "("
+		logMessage += "@" + m.Sender.Username
+		logMessage += ")"
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		bot.SendMessage(textGateOpenError, m, b)
+
+		logMessage += "try to open gate and gets error"
+		logMessage = "‼️ " + logMessage
+
+		bot.SendMessageLog(logMessage, b)
 	} else {
 		bot.SendMessage(textGateOpened, m, b)
+
+		logMessage += "open gate"
+		logMessage = "✅ " + logMessage
+
+		bot.SendMessageLog(logMessage, b)
 	}
 
 }

@@ -2,7 +2,6 @@ package admin
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
-	"log"
 	"skandigatebot/bot"
 	a "skandigatebot/models/account"
 	u "skandigatebot/models/user"
@@ -76,6 +75,6 @@ func (pa *PAdmin) ShowAdminMenu(m *tb.Message, b *tb.Bot) {
 
 	_, err := b.Send(m.Sender, textSelectAction, menu)
 	if err != nil {
-		log.Fatal(err)
+		bot.SendMessageLog(err.Error(), b)
 	}
 }

@@ -29,6 +29,8 @@ func main() {
 		return
 	}
 
+	bot.SendMessageLog("Bot starting...", b)
+
 	b.Handle("/start", func(m *tb.Message) {
 		pauth := auth.New()
 		pgate := gate.New(pauth)

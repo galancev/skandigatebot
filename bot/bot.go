@@ -7,10 +7,22 @@ import (
 	u "skandigatebot/models/user"
 )
 
+type LogChat struct {
+	LogChatId string
+}
+
+func (lc LogChat) Recipient() string {
+	return LogChatId
+}
+
+const (
+	LogChatId = "-615741784"
+)
+
 func SendMessage(message string, m *tb.Message, b *tb.Bot) {
 	_, err := b.Send(m.Sender, message, tb.ModeHTML)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 }
 
@@ -24,4 +36,15 @@ func GetAccountAndUser(m *tb.Message) (a.Account, u.User, error) {
 	}
 
 	return account, user, err
+}
+
+func SendMessageLog(message string, b *tb.Bot) {
+	var r LogChat
+
+	r.LogChatId = LogChatId
+
+	_, err := b.Send(r, message, tb.ModeHTML)
+	if err != nil {
+		log.Print(err)
+	}
 }

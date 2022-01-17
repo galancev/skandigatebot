@@ -2,7 +2,6 @@ package auth
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
-	"log"
 	"skandigatebot/base"
 	"skandigatebot/bot"
 	a "skandigatebot/models/account"
@@ -37,7 +36,7 @@ func (pa *PAuth) OnAuth(m *tb.Message, b *tb.Bot) {
 
 	phone, err := strconv.Atoi(m.Contact.PhoneNumber)
 	if err != nil {
-		log.Fatal(err)
+		bot.SendMessageLog(err.Error(), b)
 	}
 
 	if account.Phone != uint(phone) {
@@ -63,6 +62,6 @@ func (pa *PAuth) ShowAuthMenu(account *a.Account, user *u.User, m *tb.Message, b
 
 	_, err := b.Send(m.Sender, textSelectAction, menu)
 	if err != nil {
-		log.Fatal(err)
+		bot.SendMessageLog(err.Error(), b)
 	}
 }
