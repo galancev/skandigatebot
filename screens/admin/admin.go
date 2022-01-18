@@ -3,7 +3,6 @@ package admin
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
 	"skandigatebot/bot"
-	a "skandigatebot/models/account"
 	u "skandigatebot/models/user"
 	"skandigatebot/models/user/role"
 )
@@ -12,20 +11,12 @@ const (
 	textSelectAction     = "🤔 Выберите дальнейшее действие"
 	OnAdminButton        = "😇 Админка"
 	textDbError          = "😵 Конина какая-то на сервере"
-	textAuthAccessDenied = "❗️ Вы успешно авторизовались, однако вашего телефона нет в списке разрешённых. Напишите скандифокс для добавления."
+	textAuthAccessDenied = "❗️ Вы успешно авторизовались, однако вашего телефона нет в списке разрешённых. Напишите @ScandiFox для добавления."
 	textAuthAdminDenied  = "📛 Хорошая попытка, но нет. В админку вам нельзя!"
 	textNonAuth          = "⛔️ Вам нельзя это сделать, вы не авторизованы."
 	OnAdminExitButton    = "↩️ Выйти из админки"
 	OnAdminShowUsers     = "👥 Показать пользователей"
 )
-
-type pauth interface {
-	ShowAuthMenu(account *a.Account, user *u.User, m *tb.Message, b *tb.Bot)
-}
-
-type pgate interface {
-	ShowGateMenu(account *a.Account, user *u.User, m *tb.Message, b *tb.Bot)
-}
 
 type PAdmin struct {
 	PAuth pauth

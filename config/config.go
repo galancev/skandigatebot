@@ -7,15 +7,6 @@ import (
 	"strconv"
 )
 
-type DbConfig struct {
-	Name     string
-	User     string
-	Password string
-	Type     string
-	Host     string
-	Port     int
-}
-
 type Config struct {
 	Db DbConfig
 }

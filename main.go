@@ -84,5 +84,17 @@ func main() {
 		// captured by existing handlers
 	})
 
+	b.Handle(tb.OnQuery, func(m *tb.Message) {
+		log.Print(m.Text)
+		// all the text messages that weren't
+		// captured by existing handlers
+	})
+
+	b.Handle(tb.OnCallback, func(m *tb.Message) {
+		log.Print(m.Text)
+		// all the text messages that weren't
+		// captured by existing handlers
+	})
+
 	b.Start()
 }

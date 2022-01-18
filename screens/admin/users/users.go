@@ -2,8 +2,9 @@ package users
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
+	"log"
 	"skandigatebot/bot"
-	a "skandigatebot/models/account"
+	"skandigatebot/models"
 	u "skandigatebot/models/user"
 	"skandigatebot/models/user/role"
 	"strconv"
@@ -11,145 +12,141 @@ import (
 
 const (
 	textDbError          = "😵 Конина какая-то на сервере"
-	textAuthAccessDenied = "❗️ Вы успешно авторизовались, однако вашего телефона нет в списке разрешённых. Напишите скандифокс для добавления."
+	textAuthAccessDenied = "❗️ Вы успешно авторизовались, однако вашего телефона нет в списке разрешённых. Напишите @ScandiFox для добавления."
 	textAuthAdminDenied  = "📛 Хорошая попытка, но нет. В админку вам нельзя!"
 	textNonAuth          = "⛔️ Вам нельзя это сделать, вы не авторизованы."
 
 	userPerPage = 10
 )
 
-type pauth interface {
-	ShowAuthMenu(account *a.Account, user *u.User, m *tb.Message, b *tb.Bot)
-}
+func getAdminUsers(page int) ([]models.UserAccount, error) {
+	users, err := u.GetUsers((page-1)*userPerPage, userPerPage)
 
-type pgate interface {
-	ShowGateMenu(account *a.Account, user *u.User, m *tb.Message, b *tb.Bot)
-}
-
-type PAdminUsers struct {
-	PAuth pauth
-	PGate pgate
-}
-
-func New(pauth pauth, pgate pgate) *PAdminUsers {
-	return &PAdminUsers{
-		PAuth: pauth,
-		PGate: pgate,
-	}
-}
-
-func (pau *PAdminUsers) OnAdminUsers(m *tb.Message, b *tb.Bot) {
-	account, user, err := bot.GetAccountAndUser(m)
-
-	if account.Phone > 0 {
-		if err != nil {
-			if err == u.ErrNotFound {
-				bot.SendMessage(textAuthAccessDenied, m, b)
-			} else {
-				bot.SendMessage(textDbError, m, b)
-			}
-			pau.PAuth.ShowAuthMenu(&account, &user, m, b)
-		} else {
-			if user.RoleId == role.Admin {
-				pau.ShowUserList(m, b)
-			} else {
-				bot.SendMessage(textAuthAdminDenied, m, b)
-				pau.PGate.ShowGateMenu(&account, &user, m, b)
-			}
-		}
-	} else {
-		bot.SendMessage(textNonAuth, m, b)
-		pau.PAuth.ShowAuthMenu(&account, &user, m, b)
-	}
-}
-
-func (pau *PAdminUsers) ShowUserList(m *tb.Message, b *tb.Bot) {
-	var currentPage int
-	currentPage = 1
-
-	selector := &tb.ReplyMarkup{}
-
-	btnPrev := selector.Data("⬅", "prev")
-	btnNext := selector.Data("➡", "next")
-
-	selector.Inline(
-		selector.Row(btnPrev, btnNext),
-	)
-
-	send, err := b.Send(m.Sender, getAdminUserMessage(currentPage), selector)
-	if err != nil {
-		return
-	}
-
-	b.Handle(&btnPrev, func(c *tb.Callback) {
-		usersCount, _ := u.GetUsersCount()
-		pagesCount := usersCount/userPerPage + 1
-
-		currentPage--
-
-		if currentPage < 1 {
-			currentPage = int(pagesCount)
-		}
-
-		b.Edit(send, getAdminUserMessage(currentPage), selector)
-
-		// ...
-		// Always respond!
-		b.Respond(c, &tb.CallbackResponse{})
-	})
-
-	b.Handle(&btnNext, func(c *tb.Callback) {
-		usersCount, _ := u.GetUsersCount()
-		pagesCount := usersCount/userPerPage + 1
-
-		currentPage++
-
-		if currentPage > int(pagesCount) {
-			currentPage = 1
-		}
-
-		b.Edit(send, getAdminUserMessage(currentPage), selector)
-
-		// ...
-		// Always respond!
-		b.Respond(c, &tb.CallbackResponse{})
-	})
+	return users, err
 }
 
 func getAdminUserMessage(page int) string {
 	usersCount, _ := u.GetUsersCount()
 	pagesCount := usersCount/userPerPage + 1
 
-	users, err := u.GetUsers((page-1)*userPerPage, userPerPage)
-	if err != nil {
-		return ""
-	}
-
 	var message string
 
+	message += "Страница [" + strconv.Itoa(page) + "] из [" + strconv.Itoa(int(pagesCount)) + "]"
+
+	return message
+}
+
+func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
+	selector := &tb.ReplyMarkup{}
+
+	btnPrev := selector.Data("⬅", "prev", strconv.Itoa(page))
+	btnNext := selector.Data("➡", "next", strconv.Itoa(page))
+
+	users, err := getAdminUsers(page)
+	if err != nil {
+		return nil
+	}
+
+	var userButtons []tb.Btn
 	for _, user := range users {
+		message := ""
+		if user.RoleId == role.Admin {
+			message += "😇"
+		} else {
+			message += "👤"
+		}
+
 		message += "+" + strconv.Itoa(int(user.Phone))
 		message += " " + user.UserFirstName + " " + user.UserLastName
 		message += "\n"
+		/*
+			if user.AccountFirstName != "" {
+				message += user.AccountFirstName + " " + user.AccountLastName
 
-		if user.AccountFirstName != "" {
-			message += user.AccountFirstName + " " + user.AccountLastName
+				if user.AccountUserName != "" {
+					message += " @" + user.AccountUserName
+				}
+			}*/
 
-			if user.AccountUserName != "" {
-				message += " @" + user.AccountUserName
+		userButton := selector.Data(message, "account-"+strconv.Itoa(int(user.UserId)), strconv.Itoa(int(user.UserId)))
+
+		userButtons = append(userButtons, userButton)
+
+		b.Handle(&userButton, func(c *tb.Callback) {
+			err := b.Respond(c, &tb.CallbackResponse{})
+			if err != nil {
+				bot.SendMessageLog(err.Error(), b)
 			}
-
-			message += "\n"
-		}
-
-		if user.RoleId == role.Admin {
-			message += " [admin]\n"
-		}
-
-		message += "\n"
+		})
 	}
 
-	message += "[" + strconv.Itoa(page) + "] из [" + strconv.Itoa(int(pagesCount)) + "]"
+	var rows []tb.Row
 
-	return message
+	for _, userButton := range userButtons {
+		rows = append(rows, selector.Row(userButton))
+	}
+
+	selector.Inline(
+		append(rows, selector.Row(btnPrev, btnNext))...,
+	)
+
+	b.Handle(&btnPrev, func(c *tb.Callback) {
+		usersCount, _ := u.GetUsersCount()
+		pagesCount := usersCount/userPerPage + 1
+
+		log.Print(pagesCount)
+
+		page, _ := strconv.Atoi(c.Data)
+
+		page--
+
+		if page < 1 {
+			page = int(pagesCount)
+		}
+
+		send := c.Message
+
+		selector := getAdminUserSelector(page, m, b)
+
+		_, err := b.Edit(send, getAdminUserMessage(page), selector, tb.ModeHTML)
+		if err != nil {
+			bot.SendMessageLog(err.Error(), b)
+		}
+
+		err = b.Respond(c, &tb.CallbackResponse{})
+		if err != nil {
+			bot.SendMessageLog(err.Error(), b)
+		}
+	})
+
+	b.Handle(&btnNext, func(c *tb.Callback) {
+		usersCount, _ := u.GetUsersCount()
+		pagesCount := usersCount/userPerPage + 1
+
+		log.Print(pagesCount)
+
+		page, _ := strconv.Atoi(c.Data)
+
+		page++
+
+		if page > int(pagesCount) {
+			page = 1
+		}
+
+		send := c.Message
+
+		selector := getAdminUserSelector(page, m, b)
+
+		_, err := b.Edit(send, getAdminUserMessage(page), selector, tb.ModeHTML)
+		if err != nil {
+			bot.SendMessageLog(err.Error(), b)
+		}
+
+		err = b.Respond(c, &tb.CallbackResponse{})
+		if err != nil {
+			bot.SendMessageLog(err.Error(), b)
+		}
+	})
+
+	return selector
 }

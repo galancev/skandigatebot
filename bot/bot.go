@@ -7,18 +7,6 @@ import (
 	u "skandigatebot/models/user"
 )
 
-type LogChat struct {
-	LogChatId string
-}
-
-func (lc LogChat) Recipient() string {
-	return LogChatId
-}
-
-const (
-	LogChatId = "-615741784"
-)
-
 func SendMessage(message string, m *tb.Message, b *tb.Bot) {
 	_, err := b.Send(m.Sender, message, tb.ModeHTML)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	u "skandigatebot/models/user"
 	"skandigatebot/models/user/role"
 	"skandigatebot/screens/admin"
+	"strconv"
 )
 
 const (
@@ -19,10 +20,6 @@ const (
 	textGateOpened    = "🚙 Врата открыты!"
 	textGateOpenError = "❌ При открытии произошла ошибка, может быть врата отключены или отглючены"
 )
-
-type pauth interface {
-	ShowAuthMenu(account *a.Account, user *u.User, m *tb.Message, b *tb.Bot)
-}
 
 type PGate struct {
 	PAuth pauth
@@ -100,14 +97,18 @@ func OpenGate(m *tb.Message, b *tb.Bot) {
 		bot.SendMessageLog(err.Error(), b)
 	}
 
-	logMessage := m.Sender.FirstName
+	logMessage := "<a href=\"tg://user?id=" + strconv.FormatInt(m.Sender.ID, 10) + "\">"
+	logMessage += m.Sender.FirstName
 	logMessage += " "
 	logMessage += m.Sender.LastName
+
 	if m.Sender.Username != "" {
-		logMessage += "("
-		logMessage += "@" + m.Sender.Username
-		logMessage += ")"
+		logMessage += " ("
+		logMessage += m.Sender.Username
+		logMessage += ") "
 	}
+
+	logMessage += "</a>"
 
 	if resp.StatusCode != http.StatusOK {
 		bot.SendMessage(textGateOpenError, m, b)

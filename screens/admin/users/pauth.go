@@ -1,0 +1,18 @@
+package users
+
+import (
+	tb "gopkg.in/tucnak/telebot.v2"
+	a "skandigatebot/models/account"
+	u "skandigatebot/models/user"
+)
+
+type pauth interface {
+	ShowAuthMenu(account *a.Account, user *u.User, m *tb.Message, b *tb.Bot)
+}
+
+func New(pauth pauth, pgate pgate) *PAdminUsers {
+	return &PAdminUsers{
+		PAuth: pauth,
+		PGate: pgate,
+	}
+}

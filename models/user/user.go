@@ -87,10 +87,19 @@ func GetUsers(offset int, limit int) ([]models.UserAccount, error) {
 	result := base.
 		GetDB().
 		Model(&User{}).
-		Select("tg_user.first_name as UserFirstName, tg_user.last_name as UserLastName, tg_user.phone as phone, tg_user.role_id as RoleId, tg_account.first_name as AccountFirstName, tg_account.last_name as AccountLastName, tg_account.user_name as AccountUserName").
+		Select(
+			"tg_user.id as UserId," +
+				"tg_user.first_name as UserFirstName," +
+				"tg_user.last_name as UserLastName," +
+				"tg_user.phone as phone," +
+				"tg_user.role_id as RoleId," +
+				"tg_account.first_name as AccountFirstName," +
+				"tg_account.last_name as AccountLastName," +
+				"tg_account.user_name as AccountUserName").
 		Joins("left join tg_account on tg_account.phone = tg_user.phone").
 		Offset(offset).
 		Limit(limit).
+		Order("tg_user.role_id, tg_user.id").
 		Find(&users)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
