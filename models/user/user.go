@@ -68,6 +68,13 @@ func SeedUsers() {
 		LastName:  "Галанцев",
 		RoleId:    role.Admin,
 	})
+
+	base.GetDB().Create(&User{
+		Phone:     79958848775,
+		FirstName: "Алексей",
+		LastName:  "Емельянов",
+		RoleId:    role.Admin,
+	})
 }
 
 func GetUsersCount() (int64, error) {
