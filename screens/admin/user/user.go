@@ -1,25 +1,18 @@
-package users
+package user
 
-import (
-	tb "gopkg.in/tucnak/telebot.v2"
-	"skandigatebot/bot"
-	u "skandigatebot/models/user"
-	"skandigatebot/models/user/role"
-)
-
-type PAdminUsers struct {
-	PAuth pauth
-	PGate pgate
+type PAdminUser struct {
+	/*PAuth pauth
+	PGate pgate*/
 }
 
-func New(pauth pauth, pgate pgate) *PAdminUsers {
-	return &PAdminUsers{
-		PAuth: pauth,
-		PGate: pgate,
+func New( /*pauth pauth, pgate pgate*/ ) *PAdminUser {
+	return &PAdminUser{
+		/*PAuth: pauth,
+		PGate: pgate,*/
 	}
 }
 
-func (pau *PAdminUsers) OnAdminUsers(m *tb.Message, b *tb.Bot) {
+/*func (pau *PAdminUser) OnAdminUsers(m *tb.Message, b *tb.Bot) {
 	account, user, err := bot.GetAccountAndUser(m)
 
 	if account.Phone > 0 {
@@ -44,14 +37,11 @@ func (pau *PAdminUsers) OnAdminUsers(m *tb.Message, b *tb.Bot) {
 	}
 }
 
-func (pau *PAdminUsers) ShowUserList(m *tb.Message, b *tb.Bot) {
-	var currentPage int
-	currentPage = 1
-
+func (pau *PAdminUser) ShowUser(userId int, page int, m *tb.Message, b *tb.Bot) {
 	selector := getAdminUserSelector(currentPage, m, b)
 
 	_, err := b.Send(m.Sender, getAdminUserMessage(currentPage), selector, tb.ModeHTML)
 	if err != nil {
 		bot.SendMessageLog(err.Error(), b)
 	}
-}
+}*/

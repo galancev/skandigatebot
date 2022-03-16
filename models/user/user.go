@@ -13,7 +13,6 @@ import (
 type User struct {
 	orm.AutoId
 	FirstName string    `gorm:"type:varchar(100)"`
-	LastName  string    `gorm:"type:varchar(100)"`
 	Phone     uint      `gorm:"uniqueIndex"`
 	RoleId    uint      `gorm:"default:1" json:"-"`
 	Role      role.Role `json:"-"`
@@ -65,14 +64,12 @@ func SeedUsers() {
 	base.GetDB().Create(&User{
 		Phone:     79151019102,
 		FirstName: "Евгений",
-		LastName:  "Галанцев",
 		RoleId:    role.Admin,
 	})
 
 	base.GetDB().Create(&User{
 		Phone:     79958848775,
 		FirstName: "Алексей",
-		LastName:  "Емельянов",
 		RoleId:    role.Admin,
 	})
 }
@@ -88,7 +85,7 @@ func GetUsersCount() (int64, error) {
 	return userCount, nil
 }
 
-func GetUsers(offset int, limit int) ([]models.UserAccount, error) {
+func GetUsersWithAccount(offset int, limit int) ([]models.UserAccount, error) {
 	var users []models.UserAccount
 
 	result := base.
@@ -97,7 +94,6 @@ func GetUsers(offset int, limit int) ([]models.UserAccount, error) {
 		Select(
 			"tg_user.id as UserId," +
 				"tg_user.first_name as UserFirstName," +
-				"tg_user.last_name as UserLastName," +
 				"tg_user.phone as phone," +
 				"tg_user.role_id as RoleId," +
 				"tg_account.first_name as AccountFirstName," +
@@ -107,6 +103,21 @@ func GetUsers(offset int, limit int) ([]models.UserAccount, error) {
 		Offset(offset).
 		Limit(limit).
 		Order("tg_user.role_id, tg_user.id").
+		Find(&users)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return users, ErrNotFound
+	}
+
+	return users, nil
+}
+
+func GetUsers() ([]User, error) {
+	var users []User
+
+	result := base.
+		GetDB().
+		Model(&User{}).
 		Find(&users)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {

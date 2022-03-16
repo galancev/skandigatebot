@@ -2,12 +2,12 @@ package users
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
-	"log"
 	"skandigatebot/bot"
 	"skandigatebot/models"
 	u "skandigatebot/models/user"
 	"skandigatebot/models/user/role"
 	"strconv"
+	//au "skandigatebot/screens/admin/user"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 )
 
 func getAdminUsers(page int) ([]models.UserAccount, error) {
-	users, err := u.GetUsers((page-1)*userPerPage, userPerPage)
+	users, err := u.GetUsersWithAccount((page-1)*userPerPage, userPerPage)
 
 	return users, err
 }
@@ -57,7 +57,15 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 		}
 
 		message += "+" + strconv.Itoa(int(user.Phone))
-		message += " " + user.UserFirstName + " " + user.UserLastName
+		message += " (" + user.UserFirstName + ")"
+		if user.AccountUserName != "" {
+			message += " :: " + user.AccountFirstName + " " + user.AccountLastName
+		}
+
+		if user.AccountLastName != "" {
+			message += " [" + user.AccountUserName + "]"
+		}
+
 		message += "\n"
 		/*
 			if user.AccountFirstName != "" {
@@ -73,6 +81,10 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 		userButtons = append(userButtons, userButton)
 
 		b.Handle(&userButton, func(c *tb.Callback) {
+			//pau := au.New()
+
+			//pau.OnAdminUsers(m, b)
+
 			err := b.Respond(c, &tb.CallbackResponse{})
 			if err != nil {
 				bot.SendMessageLog(err.Error(), b)
@@ -93,8 +105,6 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 	b.Handle(&btnPrev, func(c *tb.Callback) {
 		usersCount, _ := u.GetUsersCount()
 		pagesCount := usersCount/userPerPage + 1
-
-		log.Print(pagesCount)
 
 		page, _ := strconv.Atoi(c.Data)
 
@@ -122,8 +132,6 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 	b.Handle(&btnNext, func(c *tb.Callback) {
 		usersCount, _ := u.GetUsersCount()
 		pagesCount := usersCount/userPerPage + 1
-
-		log.Print(pagesCount)
 
 		page, _ := strconv.Atoi(c.Data)
 

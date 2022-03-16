@@ -7,6 +7,13 @@ import (
 	u "skandigatebot/models/user"
 )
 
+type Bot struct {
+}
+
+func New() *Bot {
+	return &Bot{}
+}
+
 func SendMessage(message string, m *tb.Message, b *tb.Bot) {
 	_, err := b.Send(m.Sender, message, tb.ModeHTML)
 	if err != nil {

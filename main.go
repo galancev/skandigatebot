@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"skandigatebot/bot"
+	"skandigatebot/components/pacs/users"
 	"skandigatebot/console"
 	"skandigatebot/screens/admin"
 	"skandigatebot/screens/auth"
@@ -16,6 +17,12 @@ import (
 )
 
 func main() {
+	/*defer func() {
+		if err := recover(); err != nil {
+			log.Println("panic occurred:", err)
+		}
+	}()*/
+
 	console.Boot()
 
 	b, err := tb.NewBot(tb.Settings{
@@ -28,6 +35,8 @@ func main() {
 
 		return
 	}
+
+	scheduler()
 
 	bot.SendMessageLog("Bot starting...", b)
 
@@ -97,4 +106,20 @@ func main() {
 	})
 
 	b.Start()
+}
+
+func scheduler() {
+	/*var err error
+
+	taskScheduler := chrono.NewDefaultTaskScheduler()
+
+	_, err = taskScheduler.ScheduleWithCron(func(ctx context.Context) {
+		go users.UpdateUsers()
+	}, "0 10 * * * *")
+
+	if err == nil {
+		log.Print("Task has been scheduled")
+	}*/
+
+	go users.UpdateUsers()
 }
