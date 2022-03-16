@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"github.com/procyon-projects/chrono"
 	"log"
 	"os"
 	"skandigatebot/bot"
@@ -109,17 +111,17 @@ func main() {
 }
 
 func scheduler() {
-	/*var err error
+	var err error
 
 	taskScheduler := chrono.NewDefaultTaskScheduler()
 
 	_, err = taskScheduler.ScheduleWithCron(func(ctx context.Context) {
 		go users.UpdateUsers()
-	}, "0 10 * * * *")
+	}, "0 */10 * * * *")
 
 	if err == nil {
 		log.Print("Task has been scheduled")
-	}*/
+	}
 
 	go users.UpdateUsers()
 }
