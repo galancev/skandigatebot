@@ -117,7 +117,7 @@ func scheduler() {
 
 	_, err = taskScheduler.ScheduleWithCron(func(ctx context.Context) {
 		go users.UpdateUsers()
-	}, "0 */10 * * * *")
+	}, "0 0 * * * *")
 
 	if err == nil {
 		log.Print("Task has been scheduled")
