@@ -2,6 +2,7 @@ package first
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
+	"skandigatebot/base"
 	"skandigatebot/bot"
 	a "skandigatebot/models/account"
 	u "skandigatebot/models/user"
@@ -31,6 +32,8 @@ func (pf *PFirst) OnStart(m *tb.Message, b *tb.Bot) {
 	bot.SendMessage(textHello, m, b)
 
 	account, user, _ := bot.GetAccountAndUser(m)
+	base.GetDB().Delete(account)
+	account = a.Account{}
 
 	pf.ShowFirstMenu(&account, &user, m, b)
 }
