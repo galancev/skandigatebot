@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"fmt"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"skandigatebot/base"
@@ -32,6 +33,8 @@ func UpdateUsers() {
 	}
 
 	syncUsers(pacsUsers, users)
+
+	log.Print("Finish update users")
 }
 
 func getPACSUsers() (PACSUserResponse, error) {
@@ -122,13 +125,22 @@ func syncUsers(pacsUsers PACSUserResponse, users []u.User) {
 		}
 	}
 
-	for _, user := range usersToDelete {
-		base.GetDB().Delete(&user)
+	err := base.GetDB().Transaction(func(tx *gorm.DB) error {
+		for _, user := range usersToDelete {
+			base.GetDB().Delete(&user)
+		}
+		for _, user := range usersToUpdate {
+			base.GetDB().Updates(&user)
+		}
+		for _, user := range usersToInsert {
+			base.GetDB().Create(&user)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return
 	}
-	for _, user := range usersToUpdate {
-		base.GetDB().Updates(&user)
-	}
-	for _, user := range usersToInsert {
-		base.GetDB().Create(&user)
-	}
+
 }

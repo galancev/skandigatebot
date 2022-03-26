@@ -3,9 +3,11 @@ package gate
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
 	"net/http"
+	"os"
 	"skandigatebot/bot"
 	pc "skandigatebot/components/pacs/config"
 	a "skandigatebot/models/account"
+	"skandigatebot/models/gateLog"
 	u "skandigatebot/models/user"
 	"skandigatebot/models/user/role"
 	"skandigatebot/screens/admin"
@@ -37,7 +39,7 @@ func (pg *PGate) OnOpen(m *tb.Message, b *tb.Bot) {
 	if account.Phone > 0 && user.Phone > 0 {
 		pg.HideGateMenuWithMessage(textGateOpening, &account, &user, m, b)
 
-		OpenGate(m, b)
+		OpenGate(&user, m, b)
 
 		pg.ShowGateMenu(&account, &user, m, b)
 	} else {
@@ -84,20 +86,28 @@ func (pg *PGate) HideGateMenuWithMessage(message string, account *a.Account, use
 	}
 }
 
-func OpenGate(m *tb.Message, b *tb.Bot) {
-	conf := pc.New()
+func OpenGate(u *u.User, m *tb.Message, b *tb.Bot) {
+	status := http.StatusOK
 
-	client := &http.Client{}
-	URL := conf.Host + "/data.cgx?cmd={\"Command\":\"ApplyProfile\",\"Number\":1}"
+	if os.Getenv("ENV") == "prod" {
+		conf := pc.New()
 
-	req, err := http.NewRequest("GET", URL, nil)
-	req.SetBasicAuth(conf.User, conf.Password)
-	resp, err := client.Do(req)
-	if err != nil {
-		bot.SendMessageLog(err.Error(), b)
+		client := &http.Client{}
+		URL := conf.Host + "/data.cgx?cmd={\"Command\":\"ApplyProfile\",\"Number\":1}"
+
+		req, err := http.NewRequest("GET", URL, nil)
+		req.SetBasicAuth(conf.User, conf.Password)
+		resp, err := client.Do(req)
+		if err != nil {
+			bot.SendMessageLog(err.Error(), b)
+		}
+
+		status = resp.StatusCode
 	}
 
-	logMessage := "<a href=\"tg://user?id=" + strconv.FormatInt(m.Sender.ID, 10) + "\">"
+	logMessage := os.Getenv("ENV")
+	logMessage += " :: "
+	logMessage += "<a href=\"tg://user?id=" + strconv.FormatInt(m.Sender.ID, 10) + "\">"
 	logMessage += m.Sender.FirstName
 	logMessage += " "
 	logMessage += m.Sender.LastName
@@ -110,13 +120,14 @@ func OpenGate(m *tb.Message, b *tb.Bot) {
 
 	logMessage += "</a>"
 
-	if resp.StatusCode != http.StatusOK {
+	if status != http.StatusOK {
 		bot.SendMessage(textGateOpenError, m, b)
 
 		logMessage += "try to open gate and gets error"
 		logMessage = "‼️ " + logMessage
 
 		bot.SendMessageLog(logMessage, b)
+		gateLog.LogFail(u.Id)
 	} else {
 		bot.SendMessage(textGateOpened, m, b)
 
@@ -124,6 +135,7 @@ func OpenGate(m *tb.Message, b *tb.Bot) {
 		logMessage = "✅ " + logMessage
 
 		bot.SendMessageLog(logMessage, b)
+		gateLog.LogSuccess(u.Id)
 	}
 
 }
