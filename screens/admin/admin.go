@@ -4,7 +4,6 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 	"skandigatebot/bot"
 	u "skandigatebot/models/user"
-	"skandigatebot/models/user/role"
 )
 
 const (
@@ -42,11 +41,16 @@ func (pa *PAdmin) OnAdmin(m *tb.Message, b *tb.Bot) {
 			}
 			pa.PAuth.ShowAuthMenu(&account, &user, m, b)
 		} else {
-			if user.RoleId == role.Admin {
-				pa.ShowAdminMenu(m, b)
+			if user.IsBlocked() {
+				bot.SendMessage(textAuthAccessDenied, m, b)
+				pa.PAuth.ShowAuthMenu(&account, &user, m, b)
 			} else {
-				bot.SendMessage(textAuthAdminDenied, m, b)
-				pa.PGate.ShowGateMenu(&account, &user, m, b)
+				if user.IsAdmin() {
+					pa.ShowAdminMenu(m, b)
+				} else {
+					bot.SendMessage(textAuthAdminDenied, m, b)
+					pa.PGate.ShowGateMenu(&account, &user, m, b)
+				}
 			}
 		}
 	} else {

@@ -4,7 +4,6 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 	"skandigatebot/bot"
 	u "skandigatebot/models/user"
-	"skandigatebot/models/user/role"
 )
 
 type PAdminUsers struct {
@@ -31,11 +30,16 @@ func (pau *PAdminUsers) OnAdminUsers(m *tb.Message, b *tb.Bot) {
 			}
 			pau.PAuth.ShowAuthMenu(&account, &user, m, b)
 		} else {
-			if user.RoleId == role.Admin {
-				pau.ShowUserList(m, b)
+			if user.IsBlocked() {
+				bot.SendMessage(textAuthAccessDenied, m, b)
+				pau.PAuth.ShowAuthMenu(&account, &user, m, b)
 			} else {
-				bot.SendMessage(textAuthAdminDenied, m, b)
-				pau.PGate.ShowGateMenu(&account, &user, m, b)
+				if user.IsAdmin() {
+					pau.ShowUserList(m, b)
+				} else {
+					bot.SendMessage(textAuthAdminDenied, m, b)
+					pau.PGate.ShowGateMenu(&account, &user, m, b)
+				}
 			}
 		}
 	} else {

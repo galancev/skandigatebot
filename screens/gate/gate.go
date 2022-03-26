@@ -15,12 +15,13 @@ import (
 )
 
 const (
-	textSelectAction  = "🤔 Выберите дальнейшее действие"
-	OpenGateButton    = "🅿️ Открыть шлагбаум"
-	textGateOpening   = "🕐 Шлагбаум открывается…"
-	textNonAuth       = "⛔️ Вам нельзя это сделать, вы не авторизованы."
-	textGateOpened    = "🚙 Шлагбаум открыт!"
-	textGateOpenError = "❌ При открытии произошла ошибка"
+	textSelectAction     = "🤔 Выберите дальнейшее действие"
+	OpenGateButton       = "🅿️ Открыть шлагбаум"
+	textGateOpening      = "🕐 Шлагбаум открывается…"
+	textNonAuth          = "⛔️ Вам нельзя это сделать, вы не авторизованы."
+	textGateOpened       = "🚙 Шлагбаум открыт!"
+	textGateOpenError    = "❌ При открытии произошла ошибка"
+	textGateAccessDenied = "❗️ Вы успешно авторизовались, однако вашего телефона нет в списке разрешенных. По вопросам доступа обратитесь в управляющую организацию АО «ВК Комфорт». Доступ возможен только для разгрузки и проезда на смежные территории."
 )
 
 type PGate struct {
@@ -37,11 +38,16 @@ func (pg *PGate) OnOpen(m *tb.Message, b *tb.Bot) {
 	account, user, _ := bot.GetAccountAndUser(m)
 
 	if account.Phone > 0 && user.Phone > 0 {
-		pg.HideGateMenuWithMessage(textGateOpening, &account, &user, m, b)
+		if user.IsActive() {
+			pg.HideGateMenuWithMessage(textGateOpening, &account, &user, m, b)
 
-		OpenGate(&user, m, b)
+			OpenGate(&user, m, b)
 
-		pg.ShowGateMenu(&account, &user, m, b)
+			pg.ShowGateMenu(&account, &user, m, b)
+		} else {
+			bot.SendMessage(textGateAccessDenied, m, b)
+			pg.PAuth.ShowAuthMenu(&account, &user, m, b)
+		}
 	} else {
 		bot.SendMessage(textNonAuth, m, b)
 		pg.PAuth.ShowAuthMenu(&account, &user, m, b)

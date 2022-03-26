@@ -31,7 +31,7 @@ func (r *Result) BeforeUpdate(tx *gorm.DB) (err error) {
 	return
 }
 
-func SeedRoles() {
+func SeedGateResults() {
 	base.GetDB().Create(&Result{
 		Name: "Успешное открытие",
 	})

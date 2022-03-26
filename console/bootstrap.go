@@ -10,6 +10,7 @@ import (
 	"skandigatebot/models/gateLog"
 	"skandigatebot/models/gateLog/result"
 	"skandigatebot/models/user"
+	"skandigatebot/models/user/active"
 	"skandigatebot/models/user/role"
 )
 
@@ -26,10 +27,11 @@ func loadEnv() {
 }
 
 func initSettings() {
-	_ = base.GetDB().Debug().AutoMigrate(&a.Account{}, &user.User{}, &role.Role{}, &result.Result{}, &gateLog.GateLog{})
+	_ = base.GetDB().Debug().AutoMigrate(&a.Account{}, &user.User{}, &role.Role{}, &active.Active{}, &result.Result{}, &gateLog.GateLog{})
 	role.SeedRoles()
+	active.SeedActives()
 	user.SeedUsers()
-	result.SeedRoles()
+	result.SeedGateResults()
 }
 
 func handleArgs() {
@@ -61,7 +63,8 @@ func seed(args []string) {
 		}
 	} else {
 		role.SeedRoles()
+		active.SeedActives()
 		user.SeedUsers()
-		result.SeedRoles()
+		result.SeedGateResults()
 	}
 }

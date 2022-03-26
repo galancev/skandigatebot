@@ -51,10 +51,14 @@ func (pf *PFirst) ShowFirstMenu(account *a.Account, user *u.User, m *tb.Message,
 				bot.SendMessage(textDbError, m, b)
 			}
 			pf.PAuth.ShowAuthMenu(account, user, m, b)
-
 		} else {
-			bot.SendMessage(textAlreadyAuth, m, b)
-			pf.PGate.ShowGateMenu(account, user, m, b)
+			if user.IsBlocked() {
+				bot.SendMessage(textAuthButAccessDenied, m, b)
+				pf.PAuth.ShowAuthMenu(account, user, m, b)
+			} else {
+				bot.SendMessage(textAlreadyAuth, m, b)
+				pf.PGate.ShowGateMenu(account, user, m, b)
+			}
 		}
 	} else {
 		bot.SendMessage(textNeedAuth, m, b)

@@ -9,6 +9,7 @@ import (
 	"skandigatebot/base"
 	pc "skandigatebot/components/pacs/config"
 	u "skandigatebot/models/user"
+	"skandigatebot/models/user/active"
 	"skandigatebot/models/user/role"
 	"strconv"
 )
@@ -97,8 +98,9 @@ func syncUsers(pacsUsers PACSUserResponse, users []u.User) {
 			if phone == user.Phone {
 				delete(usersToDelete, phone)
 
-				if pacsUser[1] != user.FirstName {
+				if pacsUser[1] != user.FirstName || user.IsBlocked() {
 					user.FirstName = pacsUser[1]
+					user.ActiveId = active.Allow
 					usersToUpdate[phone] = user
 				}
 
@@ -119,6 +121,7 @@ func syncUsers(pacsUsers PACSUserResponse, users []u.User) {
 				Phone:     phone,
 				FirstName: pacsUser[1],
 				RoleId:    role.User,
+				ActiveId:  active.Allow,
 			}
 
 			usersToInsert[phone] = newUser
@@ -127,7 +130,9 @@ func syncUsers(pacsUsers PACSUserResponse, users []u.User) {
 
 	err := base.GetDB().Transaction(func(tx *gorm.DB) error {
 		for _, user := range usersToDelete {
-			base.GetDB().Delete(&user)
+			user.ActiveId = active.Blocked
+
+			base.GetDB().Updates(&user)
 		}
 		for _, user := range usersToUpdate {
 			base.GetDB().Updates(&user)

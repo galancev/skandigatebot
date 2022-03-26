@@ -6,16 +6,19 @@ import (
 	"skandigatebot/base"
 	"skandigatebot/models"
 	"skandigatebot/models/orm"
+	"skandigatebot/models/user/active"
 	"skandigatebot/models/user/role"
 	"time"
 )
 
 type User struct {
 	orm.AutoId
-	FirstName string    `gorm:"type:varchar(100)"`
-	Phone     uint      `gorm:"uniqueIndex"`
-	RoleId    uint      `gorm:"default:1" json:"-"`
-	Role      role.Role `json:"-"`
+	FirstName string        `gorm:"type:varchar(100)"`
+	Phone     uint          `gorm:"uniqueIndex"`
+	RoleId    uint          `gorm:"default:2" json:"-"`
+	Role      role.Role     `json:"-"`
+	ActiveId  uint          `gorm:"default:1" json:"-"`
+	Active    active.Active `json:"-"`
 	orm.Time
 }
 
@@ -37,11 +40,19 @@ func (user *User) BeforeUpdate(tx *gorm.DB) (err error) {
 }
 
 func (user *User) IsAdmin() bool {
-	return user.Role.Id == role.Admin
+	return user.RoleId == role.Admin
 }
 
 func (user *User) IsUser() bool {
-	return user.Role.Id == role.User
+	return user.RoleId == role.User
+}
+
+func (user *User) IsActive() bool {
+	return user.ActiveId == active.Allow
+}
+
+func (user *User) IsBlocked() bool {
+	return user.ActiveId == active.Blocked
 }
 
 func GetUser(phone uint) (User, error) {
@@ -65,12 +76,14 @@ func SeedUsers() {
 		Phone:     79151019102,
 		FirstName: "Евгений",
 		RoleId:    role.Admin,
+		ActiveId:  active.Allow,
 	})
 
 	base.GetDB().Create(&User{
 		Phone:     79958848775,
 		FirstName: "Алексей",
 		RoleId:    role.Admin,
+		ActiveId:  active.Allow,
 	})
 }
 
@@ -96,13 +109,14 @@ func GetUsersWithAccount(offset int, limit int) ([]models.UserAccount, error) {
 				"tg_user.first_name as UserFirstName," +
 				"tg_user.phone as phone," +
 				"tg_user.role_id as RoleId," +
+				"tg_user.active_id as ActiveId," +
 				"tg_account.first_name as AccountFirstName," +
 				"tg_account.last_name as AccountLastName," +
 				"tg_account.user_name as AccountUserName").
 		Joins("left join tg_account on tg_account.phone = tg_user.phone").
 		Offset(offset).
 		Limit(limit).
-		Order("tg_user.role_id, tg_user.id").
+		Order("tg_account.id desc, tg_user.role_id, tg_user.active_id, tg_user.id").
 		Find(&users)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {

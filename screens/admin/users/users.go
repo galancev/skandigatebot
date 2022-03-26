@@ -5,6 +5,7 @@ import (
 	"skandigatebot/bot"
 	"skandigatebot/models"
 	u "skandigatebot/models/user"
+	"skandigatebot/models/user/active"
 	"skandigatebot/models/user/role"
 	"strconv"
 	//au "skandigatebot/screens/admin/user"
@@ -50,6 +51,13 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 	var userButtons []tb.Btn
 	for _, user := range users {
 		message := ""
+
+		if user.ActiveId == active.Allow {
+			message += "✳"
+		} else {
+			message += "️🅱️"
+		}
+
 		if user.RoleId == role.Admin {
 			message += "😇"
 		} else {
