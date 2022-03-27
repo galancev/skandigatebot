@@ -19,7 +19,10 @@ import (
 )
 
 const (
-	textUnknownText = "😅 Не понял вас"
+	textUnknownText     = "😅 Не понял вас."
+	textUnknownPhoto    = "😱 Картинки, фоточки, ура! Сохраню в свой альбом, буду разглядывать на досуге. 👌"
+	textUnknownVideo    = "❤️ Спасибо! Мне было так скучно..."
+	textUnknownDocument = "😏 Что мне с этим делать?"
 )
 
 func main() {
@@ -95,6 +98,42 @@ func main() {
 
 	b.Handle(tb.OnText, func(m *tb.Message) {
 		bot.SendMessage(textUnknownText, m, b)
+
+		account, user, _ := bot.GetAccountAndUser(m)
+
+		pauth := auth.New()
+		pgate := gate.New(pauth)
+		pfirst := first.New(pauth, pgate)
+
+		pfirst.ShowFirstMenu(&account, &user, m, b)
+	})
+
+	b.Handle(tb.OnPhoto, func(m *tb.Message) {
+		bot.SendMessage(textUnknownPhoto, m, b)
+
+		account, user, _ := bot.GetAccountAndUser(m)
+
+		pauth := auth.New()
+		pgate := gate.New(pauth)
+		pfirst := first.New(pauth, pgate)
+
+		pfirst.ShowFirstMenu(&account, &user, m, b)
+	})
+
+	b.Handle(tb.OnVideo, func(m *tb.Message) {
+		bot.SendMessage(textUnknownVideo, m, b)
+
+		account, user, _ := bot.GetAccountAndUser(m)
+
+		pauth := auth.New()
+		pgate := gate.New(pauth)
+		pfirst := first.New(pauth, pgate)
+
+		pfirst.ShowFirstMenu(&account, &user, m, b)
+	})
+
+	b.Handle(tb.OnDocument, func(m *tb.Message) {
+		bot.SendMessage(textUnknownDocument, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
 
