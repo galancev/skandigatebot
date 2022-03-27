@@ -18,6 +18,10 @@ import (
 	au "skandigatebot/screens/admin/users"
 )
 
+const (
+	textUnknownText = "😅 Не понял вас"
+)
+
 func main() {
 	/*defer func() {
 		if err := recover(); err != nil {
@@ -90,9 +94,15 @@ func main() {
 	})
 
 	b.Handle(tb.OnText, func(m *tb.Message) {
-		log.Print(m.Text)
-		// all the text messages that weren't
-		// captured by existing handlers
+		bot.SendMessage(textUnknownText, m, b)
+
+		account, user, _ := bot.GetAccountAndUser(m)
+
+		pauth := auth.New()
+		pgate := gate.New(pauth)
+		pfirst := first.New(pauth, pgate)
+
+		pfirst.ShowFirstMenu(&account, &user, m, b)
 	})
 
 	b.Handle(tb.OnQuery, func(m *tb.Message) {
