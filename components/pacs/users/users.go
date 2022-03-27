@@ -2,6 +2,7 @@ package users
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"gorm.io/gorm"
 	"log"
@@ -47,10 +48,16 @@ func getPACSUsers() (PACSUserResponse, error) {
 	req, err := http.NewRequest("GET", URL, nil)
 	req.SetBasicAuth(conf.User, conf.Password)
 	resp, err := client.Do(req)
-	if err != nil && resp.StatusCode != http.StatusOK {
+	if err != nil {
 		fmt.Println(err)
 
 		return PACSUserResponse{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println(resp)
+
+		return PACSUserResponse{}, errors.New("Кривой статус код")
 	}
 
 	pacUsersResponse := &PACSUserResponse{}
