@@ -65,8 +65,5 @@ func seed(args []string) {
 		user.SeedUsers()
 		result.SeedGateResults()
 		gateLogType.SeedGateLogTypes()
-
-		base.GetDB().Exec("alter table tg_gate_log drop foreign key fk_tg_gate_log_user")
-		base.GetDB().Exec("update tg_gate_log set open_at = created_at")
 	}
 }
