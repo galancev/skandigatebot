@@ -116,7 +116,7 @@ func GetUsersWithAccount(offset int, limit int) ([]models.UserAccount, error) {
 		Joins("left join tg_account on tg_account.phone = tg_user.phone").
 		Offset(offset).
 		Limit(limit).
-		Order("IF(tg_account.id IS NULL, 1, 0), tg_user.active_id, tg_user.id").
+		Order("tg_user.active_id, IF(tg_account.id IS NULL, 1, 0), tg_user.id").
 		Find(&users)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {

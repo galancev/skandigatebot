@@ -15,6 +15,7 @@ import (
 	"time"
 
 	tb "gopkg.in/tucnak/telebot.v2"
+	al "skandigatebot/screens/admin/log"
 	au "skandigatebot/screens/admin/users"
 )
 
@@ -96,6 +97,14 @@ func main() {
 		pau.OnAdminUsers(m, b)
 	})
 
+	b.Handle(admin.OnAdminShowLog, func(m *tb.Message) {
+		pauth := auth.New()
+		pgate := gate.New(pauth)
+		pal := al.New(pauth, pgate)
+
+		pal.OnAdminLog(m, b)
+	})
+
 	b.Handle(tb.OnText, func(m *tb.Message) {
 		bot.SendMessage(textUnknownText, m, b)
 
@@ -173,4 +182,5 @@ func scheduler() {
 	}
 
 	go users.UpdateUsers()
+	//go phoneLogs.UpdateLogs()
 }

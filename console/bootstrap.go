@@ -9,6 +9,7 @@ import (
 	a "skandigatebot/models/account"
 	"skandigatebot/models/gateLog"
 	"skandigatebot/models/gateLog/result"
+	gateLogType "skandigatebot/models/gateLog/type"
 	"skandigatebot/models/user"
 	"skandigatebot/models/user/active"
 	"skandigatebot/models/user/role"
@@ -28,10 +29,7 @@ func loadEnv() {
 
 func initSettings() {
 	_ = base.GetDB().Debug().AutoMigrate(&a.Account{}, &user.User{}, &role.Role{}, &active.Active{}, &result.Result{}, &gateLog.GateLog{})
-	role.SeedRoles()
-	active.SeedActives()
-	user.SeedUsers()
-	result.SeedGateResults()
+	seed([]string{})
 }
 
 func handleArgs() {
@@ -66,5 +64,9 @@ func seed(args []string) {
 		active.SeedActives()
 		user.SeedUsers()
 		result.SeedGateResults()
+		gateLogType.SeedGateLogTypes()
+
+		base.GetDB().Exec("alter table tg_gate_log drop foreign key fk_tg_gate_log_user")
+		base.GetDB().Exec("update tg_gate_log set open_at = created_at")
 	}
 }

@@ -14,7 +14,8 @@ const (
 	textAuthAdminDenied  = "📛 Хорошая попытка, но нет. В админку вам нельзя!"
 	textNonAuth          = "⛔️ Вам нельзя это сделать, вы не авторизованы."
 	OnAdminExitButton    = "↩️ Выйти из админки"
-	OnAdminShowUsers     = "👥 Показать пользователей"
+	OnAdminShowUsers     = "👥 Пользователи"
+	OnAdminShowLog       = "📚 Лог шлагбаума"
 )
 
 type PAdmin struct {
@@ -63,9 +64,10 @@ func (pa *PAdmin) ShowAdminMenu(m *tb.Message, b *tb.Bot) {
 	menu := &tb.ReplyMarkup{ResizeReplyKeyboard: true}
 	btnAdminBack := menu.Text(OnAdminExitButton)
 	btnAdminShowUsers := menu.Text(OnAdminShowUsers)
+	btnAdminShowLog := menu.Text(OnAdminShowLog)
 
 	menu.Reply(
-		menu.Row(btnAdminBack, btnAdminShowUsers),
+		menu.Row(btnAdminBack, btnAdminShowUsers, btnAdminShowLog),
 	)
 
 	_, err := b.Send(m.Sender, textSelectAction, menu)

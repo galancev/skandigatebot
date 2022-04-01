@@ -1,13 +1,14 @@
-package users
+package log
 
 import (
 	tb "gopkg.in/tucnak/telebot.v2"
 	"skandigatebot/bot"
 	"skandigatebot/models"
-	u "skandigatebot/models/user"
-	"skandigatebot/models/user/active"
-	"skandigatebot/models/user/role"
+	"skandigatebot/models/gateLog"
+	"skandigatebot/models/gateLog/result"
+	gateLogType "skandigatebot/models/gateLog/type"
 	"strconv"
+	"time"
 	//au "skandigatebot/screens/admin/user"
 )
 
@@ -20,14 +21,14 @@ const (
 	userPerPage = 10
 )
 
-func getAdminUsers(page int) ([]models.UserAccount, error) {
-	users, err := u.GetUsersWithAccount((page-1)*userPerPage, userPerPage)
+func getLogs(page int) ([]models.LogUserAccount, error) {
+	logs, err := gateLog.GetLogsWithUsers((page-1)*userPerPage, userPerPage)
 
-	return users, err
+	return logs, err
 }
 
-func getAdminUserMessage(page int) string {
-	usersCount, _ := u.GetUsersCount()
+func getAdminLogMessage(page int) string {
+	usersCount, _ := gateLog.GetLogsCount()
 	pagesCount := usersCount/userPerPage + 1
 
 	var message string
@@ -37,13 +38,13 @@ func getAdminUserMessage(page int) string {
 	return message
 }
 
-func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
+func getLogUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 	selector := &tb.ReplyMarkup{}
 
 	btnPrev := selector.Data("⬅", "prev", strconv.Itoa(page))
 	btnNext := selector.Data("➡", "next", strconv.Itoa(page))
 
-	users, err := getAdminUsers(page)
+	users, err := getLogs(page)
 	if err != nil {
 		return nil
 	}
@@ -51,20 +52,20 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 	var userButtons []tb.Btn
 	for _, user := range users {
 		message := ""
-
-		if user.ActiveId == active.Allow {
-			message += "✳"
+		if user.LogResultId == result.Success {
+			message += "✅"
 		} else {
-			message += "️🅱️"
+			message += "❌"
 		}
 
-		if user.RoleId == role.Admin {
-			message += "😇"
+		if user.LogTypeId == gateLogType.Bot {
+			message += "🤖"
 		} else {
-			message += "👤"
+			message += "☎️"
 		}
 
-		message += "+" + strconv.Itoa(int(user.Phone))
+		message += " " + (user.LogCreatedAt.Add(3 * time.Hour)).Format("2006-01-02 15:04:05")
+		message += " +" + strconv.Itoa(int(user.Phone))
 		message += " (" + user.UserFirstName + ")"
 		if user.AccountFirstName != "" {
 			message += " :: " + user.AccountFirstName + " " + user.AccountLastName
@@ -111,7 +112,7 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 	)
 
 	b.Handle(&btnPrev, func(c *tb.Callback) {
-		usersCount, _ := u.GetUsersCount()
+		usersCount, _ := gateLog.GetLogsCount()
 		pagesCount := usersCount/userPerPage + 1
 
 		page, _ := strconv.Atoi(c.Data)
@@ -124,9 +125,9 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 
 		send := c.Message
 
-		selector := getAdminUserSelector(page, m, b)
+		selector := getLogUserSelector(page, m, b)
 
-		_, err := b.Edit(send, getAdminUserMessage(page), selector, tb.ModeHTML)
+		_, err := b.Edit(send, getAdminLogMessage(page), selector, tb.ModeHTML)
 		if err != nil {
 			bot.SendMessageLog(err.Error(), b)
 		}
@@ -138,7 +139,7 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 	})
 
 	b.Handle(&btnNext, func(c *tb.Callback) {
-		usersCount, _ := u.GetUsersCount()
+		usersCount, _ := gateLog.GetLogsCount()
 		pagesCount := usersCount/userPerPage + 1
 
 		page, _ := strconv.Atoi(c.Data)
@@ -151,9 +152,9 @@ func getAdminUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 
 		send := c.Message
 
-		selector := getAdminUserSelector(page, m, b)
+		selector := getLogUserSelector(page, m, b)
 
-		_, err := b.Edit(send, getAdminUserMessage(page), selector, tb.ModeHTML)
+		_, err := b.Edit(send, getAdminLogMessage(page), selector, tb.ModeHTML)
 		if err != nil {
 			bot.SendMessageLog(err.Error(), b)
 		}
