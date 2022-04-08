@@ -124,7 +124,7 @@ func OpenGate(u *u.User, m *tb.Message, b *tb.Bot) {
 		logMessage += ") "
 	}
 
-	logMessage += "</a>"
+	logMessage += "</a> "
 
 	if status != http.StatusOK {
 		bot.SendMessage(textGateOpenError, m, b)

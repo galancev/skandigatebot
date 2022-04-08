@@ -64,7 +64,7 @@ func getLogUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 			message += "☎️"
 		}
 
-		message += " " + (user.LogCreatedAt.Add(3 * time.Hour)).Format("2006-01-02 15:04:05")
+		message += " " + (user.LogOpenAt.Add(3 * time.Hour)).Format("2006-01-02 15:04:05")
 		message += " +" + strconv.Itoa(int(user.Phone))
 		message += " (" + user.UserFirstName + ")"
 		if user.AccountFirstName != "" {

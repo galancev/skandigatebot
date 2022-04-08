@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"skandigatebot/bot"
+	"skandigatebot/components/pacs/phoneLogs"
 	"skandigatebot/components/pacs/users"
 	"skandigatebot/console"
 	"skandigatebot/screens/admin"
@@ -177,10 +178,14 @@ func scheduler() {
 		go users.UpdateUsers()
 	}, "0 0 * * * *")
 
+	_, err = taskScheduler.ScheduleWithCron(func(ctx context.Context) {
+		go phoneLogs.UpdateLogs()
+	}, "*/30 * * * * *")
+
 	if err == nil {
 		log.Print("Task has been scheduled")
 	}
 
 	go users.UpdateUsers()
-	//go phoneLogs.UpdateLogs()
+	go phoneLogs.UpdateLogs()
 }

@@ -4,8 +4,7 @@ import "time"
 
 type LogUserAccount struct {
 	LogId            uint      `gorm:"type:integer"`
-	LogCreatedAt     time.Time `gorm:"type:datetime;default:now()" json:"-"`
-	LogUpdatedAt     time.Time `gorm:"type:datetime;default:now()" json:"-"`
+	LogOpenAt        time.Time `gorm:"type:datetime;default:now()" json:"-"`
 	LogResultId      uint      `gorm:"type:integer"`
 	LogTypeId        uint      `gorm:"type:integer"`
 	LogTypeNumber    uint      `gorm:"type:integer"`
