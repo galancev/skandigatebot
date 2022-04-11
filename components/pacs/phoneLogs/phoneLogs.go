@@ -4,18 +4,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"net/http"
+	"os"
 	"skandigatebot/base"
+	"skandigatebot/bot"
 	pc "skandigatebot/components/pacs/config"
+	"skandigatebot/models/account"
 	"skandigatebot/models/gateLog"
 	"skandigatebot/models/gateLog/result"
 	gateLogType "skandigatebot/models/gateLog/type"
+	"skandigatebot/models/user"
 	"strconv"
 	"time"
 )
 
-func UpdateLogs() {
+func UpdateLogs(b *tb.Bot) {
 	log.Print("Run update logs")
 
 	maxNumber := gateLog.GetLastPhoneLogNumber()
@@ -28,8 +33,8 @@ func UpdateLogs() {
 		return
 	}
 
-	addLogs(pacsLogs)
-	UpdateUserIds()
+	addLogs(pacsLogs, b)
+	UpdateNonPhoneLogsOpenAt()
 
 	log.Print("Finish update logs")
 }
@@ -66,7 +71,7 @@ func getPACSLogs(fromNumber uint) (PACSLogResponse, error) {
 	return *pacUsersResponse, err
 }
 
-func addLogs(pacsLogs PACSLogResponse) {
+func addLogs(pacsLogs PACSLogResponse, b *tb.Bot) {
 	for _, pacsLog := range pacsLogs.Records {
 		logNumberInt, err := strconv.Atoi(fmt.Sprintf("%v", pacsLog[0]))
 
@@ -100,12 +105,51 @@ func addLogs(pacsLogs PACSLogResponse) {
 			OpenAt:        logTime,
 		}
 
+		foundUser, err := user.GetUser(logPhone)
+
+		if err != user.ErrNotFound {
+			newGateLog.UserId = foundUser.Id
+		}
+
 		err = base.GetDB().Create(&newGateLog).Error
 
-		fmt.Println(err)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		foundAccount, err := account.GetAccountByPhone(logPhone)
+
+		logMessage := ""
+		logMessage += os.Getenv("ENV")
+		logMessage += " :: " + (logTime).Format("2006-01-02 15:04:05")
+
+		if logPhone != 0 {
+			logMessage += " :: +" + strconv.Itoa(int(logPhone))
+		}
+
+		logMessage += "\n"
+		logMessage += "☎️ "
+		logMessage += "<a href=\"tg://user?id=" + strconv.FormatInt(int64(foundAccount.AccountId), 10) + "\">"
+
+		logMessage += foundAccount.FirstName
+		logMessage += " "
+		logMessage += foundAccount.LastName
+
+		if foundAccount.UserName != "" {
+			logMessage += " ("
+			logMessage += foundAccount.UserName
+			logMessage += ")"
+		}
+
+		logMessage += "</a> "
+
+		logMessage += "open gate"
+		logMessage = "✅ " + logMessage
+
+		bot.SendMessageLog(logMessage, b)
 	}
 }
 
-func UpdateUserIds() {
-	base.GetDB().Exec("UPDATE tg_gate_log gl INNER JOIN tg_user tu ON gl.phone = tu.phone SET gl.user_id = tu.id WHERE gl.log_type_id = 2 AND gl.user_id = 0;")
+func UpdateNonPhoneLogsOpenAt() {
+	base.GetDB().Exec("UPDATE tg_gate_log SET open_at = created_at WHERE phone is NULL and open_at <> created_at;")
 }

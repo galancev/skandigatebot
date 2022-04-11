@@ -12,6 +12,7 @@ import (
 	"skandigatebot/models/user/role"
 	"skandigatebot/screens/admin"
 	"strconv"
+	"time"
 )
 
 const (
@@ -111,8 +112,16 @@ func OpenGate(u *u.User, m *tb.Message, b *tb.Bot) {
 		status = resp.StatusCode
 	}
 
-	logMessage := os.Getenv("ENV")
-	logMessage += " :: "
+	logMessage := ""
+	logMessage += os.Getenv("ENV")
+	logMessage += " :: " + (time.Now()).Format("2006-01-02 15:04:05")
+
+	if u.Phone != 0 {
+		logMessage += " :: +" + strconv.Itoa(int(u.Phone))
+	}
+
+	logMessage += "\n"
+	logMessage += "🤖 "
 	logMessage += "<a href=\"tg://user?id=" + strconv.FormatInt(m.Sender.ID, 10) + "\">"
 	logMessage += m.Sender.FirstName
 	logMessage += " "
@@ -121,7 +130,7 @@ func OpenGate(u *u.User, m *tb.Message, b *tb.Bot) {
 	if m.Sender.Username != "" {
 		logMessage += " ("
 		logMessage += m.Sender.Username
-		logMessage += ") "
+		logMessage += ")"
 	}
 
 	logMessage += "</a> "

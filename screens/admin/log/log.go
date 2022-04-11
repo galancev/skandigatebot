@@ -18,18 +18,18 @@ const (
 	textAuthAdminDenied  = "📛 Хорошая попытка, но нет. В админку вам нельзя!"
 	textNonAuth          = "⛔️ Вам нельзя это сделать, вы не авторизованы."
 
-	userPerPage = 10
+	logsPerPage = 10
 )
 
 func getLogs(page int) ([]models.LogUserAccount, error) {
-	logs, err := gateLog.GetLogsWithUsers((page-1)*userPerPage, userPerPage)
+	logs, err := gateLog.GetLogsWithUsers((page-1)*logsPerPage, logsPerPage)
 
 	return logs, err
 }
 
 func getAdminLogMessage(page int) string {
-	usersCount, _ := gateLog.GetLogsCount()
-	pagesCount := usersCount/userPerPage + 1
+	logsCount, _ := gateLog.GetLogsCount()
+	pagesCount := logsCount/logsPerPage + 1
 
 	var message string
 
@@ -113,7 +113,7 @@ func getLogUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 
 	b.Handle(&btnPrev, func(c *tb.Callback) {
 		usersCount, _ := gateLog.GetLogsCount()
-		pagesCount := usersCount/userPerPage + 1
+		pagesCount := usersCount/logsPerPage + 1
 
 		page, _ := strconv.Atoi(c.Data)
 
@@ -140,7 +140,7 @@ func getLogUserSelector(page int, m *tb.Message, b *tb.Bot) *tb.ReplyMarkup {
 
 	b.Handle(&btnNext, func(c *tb.Callback) {
 		usersCount, _ := gateLog.GetLogsCount()
-		pagesCount := usersCount/userPerPage + 1
+		pagesCount := usersCount/logsPerPage + 1
 
 		page, _ := strconv.Atoi(c.Data)
 

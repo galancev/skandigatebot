@@ -28,11 +28,11 @@ const (
 )
 
 func main() {
-	/*defer func() {
+	defer func() {
 		if err := recover(); err != nil {
 			log.Println("panic occurred:", err)
 		}
-	}()*/
+	}()
 
 	console.Boot()
 
@@ -46,8 +46,6 @@ func main() {
 
 		return
 	}
-
-	scheduler()
 
 	bot.SendMessageLog("Bot starting...", b)
 
@@ -166,10 +164,12 @@ func main() {
 		// captured by existing handlers
 	})
 
+	scheduler(b)
+
 	b.Start()
 }
 
-func scheduler() {
+func scheduler(b *tb.Bot) {
 	var err error
 
 	taskScheduler := chrono.NewDefaultTaskScheduler()
@@ -179,13 +179,13 @@ func scheduler() {
 	}, "0 0 * * * *")
 
 	_, err = taskScheduler.ScheduleWithCron(func(ctx context.Context) {
-		go phoneLogs.UpdateLogs()
-	}, "*/30 * * * * *")
+		go phoneLogs.UpdateLogs(b)
+	}, "*/5 * * * * *")
 
 	if err == nil {
 		log.Print("Task has been scheduled")
 	}
 
 	go users.UpdateUsers()
-	go phoneLogs.UpdateLogs()
+	go phoneLogs.UpdateLogs(b)
 }
