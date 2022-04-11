@@ -23,6 +23,7 @@ func init() {
 			TablePrefix:   "tg_",
 			SingularTable: true,
 		},
+		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
 		fmt.Print(err)

@@ -137,6 +137,10 @@ func syncUsers(pacsUsers PACSUserResponse, users []u.User) {
 
 	err := base.GetDB().Transaction(func(tx *gorm.DB) error {
 		for _, user := range usersToDelete {
+			if user.IsBlocked() {
+				continue
+			}
+
 			user.ActiveId = active.Blocked
 
 			base.GetDB().Updates(&user)

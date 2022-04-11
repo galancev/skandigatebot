@@ -19,6 +19,10 @@ type Account struct {
 	orm.Time
 }
 
+var (
+	ErrNotFound = errors.New("account not found")
+)
+
 func (account *Account) BeforeCreate(tx *gorm.DB) (err error) {
 	account.CreatedAt = time.Now()
 	account.UpdatedAt = time.Now()
@@ -30,6 +34,22 @@ func (account *Account) BeforeUpdate(tx *gorm.DB) (err error) {
 	account.UpdatedAt = time.Now()
 
 	return
+}
+
+func GetAccountByPhone(phone uint) (Account, error) {
+	var account Account
+
+	result := base.
+		GetDB().
+		Model(&Account{}).
+		Where("phone = ?", phone).
+		Take(&account)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return account, ErrNotFound
+	}
+
+	return account, nil
 }
 
 func GetAccount(m *tb.Message) Account {

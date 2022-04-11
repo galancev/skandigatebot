@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"skandigatebot/bot"
+	"skandigatebot/components/pacs/phoneLogs"
 	"skandigatebot/components/pacs/users"
 	"skandigatebot/console"
 	"skandigatebot/screens/admin"
@@ -27,11 +28,11 @@ const (
 )
 
 func main() {
-	/*defer func() {
+	defer func() {
 		if err := recover(); err != nil {
 			log.Println("panic occurred:", err)
 		}
-	}()*/
+	}()
 
 	console.Boot()
 
@@ -46,11 +47,13 @@ func main() {
 		return
 	}
 
-	scheduler()
-
 	bot.SendMessageLog("Bot starting...", b)
 
 	b.Handle("/start", func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 		pfirst := first.New(pauth, pgate)
@@ -59,12 +62,20 @@ func main() {
 	})
 
 	b.Handle(tb.OnContact, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 
 		pauth.OnAuth(m, b)
 	})
 
 	b.Handle(gate.OpenGateButton, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 
@@ -72,6 +83,10 @@ func main() {
 	})
 
 	b.Handle(admin.OnAdminButton, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 		padmin := admin.New(pauth, pgate)
@@ -80,6 +95,10 @@ func main() {
 	})
 
 	b.Handle(admin.OnAdminExitButton, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		account, user, _ := bot.GetAccountAndUser(m)
 
 		pauth := auth.New()
@@ -90,6 +109,10 @@ func main() {
 	})
 
 	b.Handle(admin.OnAdminShowUsers, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 		pau := au.New(pauth, pgate)
@@ -98,6 +121,10 @@ func main() {
 	})
 
 	b.Handle(admin.OnAdminShowLog, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 		pal := al.New(pauth, pgate)
@@ -106,6 +133,10 @@ func main() {
 	})
 
 	b.Handle(tb.OnText, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		bot.SendMessage(textUnknownText, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
@@ -118,6 +149,10 @@ func main() {
 	})
 
 	b.Handle(tb.OnPhoto, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		bot.SendMessage(textUnknownPhoto, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
@@ -130,6 +165,10 @@ func main() {
 	})
 
 	b.Handle(tb.OnVideo, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		bot.SendMessage(textUnknownVideo, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
@@ -142,6 +181,10 @@ func main() {
 	})
 
 	b.Handle(tb.OnDocument, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		bot.SendMessage(textUnknownDocument, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
@@ -165,10 +208,12 @@ func main() {
 		// captured by existing handlers
 	})
 
+	scheduler(b)
+
 	b.Start()
 }
 
-func scheduler() {
+func scheduler(b *tb.Bot) {
 	var err error
 
 	taskScheduler := chrono.NewDefaultTaskScheduler()
@@ -177,10 +222,14 @@ func scheduler() {
 		go users.UpdateUsers()
 	}, "0 0 * * * *")
 
+	_, err = taskScheduler.ScheduleWithCron(func(ctx context.Context) {
+		go phoneLogs.UpdateLogs(b)
+	}, "0 */5 * * * *")
+
 	if err == nil {
 		log.Print("Task has been scheduled")
 	}
 
 	go users.UpdateUsers()
-	//go phoneLogs.UpdateLogs()
+	go phoneLogs.UpdateLogs(b)
 }
