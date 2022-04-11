@@ -50,6 +50,10 @@ func main() {
 	bot.SendMessageLog("Bot starting...", b)
 
 	b.Handle("/start", func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 		pfirst := first.New(pauth, pgate)
@@ -58,12 +62,20 @@ func main() {
 	})
 
 	b.Handle(tb.OnContact, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 
 		pauth.OnAuth(m, b)
 	})
 
 	b.Handle(gate.OpenGateButton, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 
@@ -71,6 +83,10 @@ func main() {
 	})
 
 	b.Handle(admin.OnAdminButton, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 		padmin := admin.New(pauth, pgate)
@@ -79,6 +95,10 @@ func main() {
 	})
 
 	b.Handle(admin.OnAdminExitButton, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		account, user, _ := bot.GetAccountAndUser(m)
 
 		pauth := auth.New()
@@ -89,6 +109,10 @@ func main() {
 	})
 
 	b.Handle(admin.OnAdminShowUsers, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 		pau := au.New(pauth, pgate)
@@ -97,6 +121,10 @@ func main() {
 	})
 
 	b.Handle(admin.OnAdminShowLog, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		pauth := auth.New()
 		pgate := gate.New(pauth)
 		pal := al.New(pauth, pgate)
@@ -105,6 +133,10 @@ func main() {
 	})
 
 	b.Handle(tb.OnText, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		bot.SendMessage(textUnknownText, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
@@ -117,6 +149,10 @@ func main() {
 	})
 
 	b.Handle(tb.OnPhoto, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		bot.SendMessage(textUnknownPhoto, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
@@ -129,6 +165,10 @@ func main() {
 	})
 
 	b.Handle(tb.OnVideo, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		bot.SendMessage(textUnknownVideo, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
@@ -141,6 +181,10 @@ func main() {
 	})
 
 	b.Handle(tb.OnDocument, func(m *tb.Message) {
+		if !m.Private() {
+			return
+		}
+
 		bot.SendMessage(textUnknownDocument, m, b)
 
 		account, user, _ := bot.GetAccountAndUser(m)
@@ -180,7 +224,7 @@ func scheduler(b *tb.Bot) {
 
 	_, err = taskScheduler.ScheduleWithCron(func(ctx context.Context) {
 		go phoneLogs.UpdateLogs(b)
-	}, "*/5 * * * * *")
+	}, "0 */5 * * * *")
 
 	if err == nil {
 		log.Print("Task has been scheduled")
