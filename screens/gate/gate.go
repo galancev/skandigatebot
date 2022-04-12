@@ -114,7 +114,7 @@ func OpenGate(u *u.User, m *tb.Message, b *tb.Bot) {
 
 	logMessage := ""
 	logMessage += os.Getenv("ENV")
-	logMessage += " :: " + (time.Now()).Format("2006-01-02 15:04:05")
+	logMessage += " :: " + (time.Now().Add(3 * time.Hour)).Format("2006-01-02 15:04:05")
 
 	if u.Phone != 0 {
 		logMessage += " :: +" + strconv.Itoa(int(u.Phone))

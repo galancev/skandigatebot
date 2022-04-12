@@ -121,7 +121,7 @@ func addLogs(pacsLogs PACSLogResponse, b *tb.Bot) {
 
 		logMessage := ""
 		logMessage += os.Getenv("ENV")
-		logMessage += " :: " + (logTime).Format("2006-01-02 15:04:05")
+		logMessage += " :: " + (logTime.Add(3 * time.Hour)).Format("2006-01-02 15:04:05")
 
 		if logPhone != 0 {
 			logMessage += " :: +" + strconv.Itoa(int(logPhone))
